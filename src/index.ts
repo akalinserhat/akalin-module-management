@@ -9,6 +9,7 @@ export * from './services/httpClient';
 export * from './services/moduleManagementService';
 export * from './adapters/ModuleManagementServiceContext';
 export * from './pages/ModullerPage';
+export * from './pages/Moduller';
 export * from './pages/ModulEksiklikArabirimiModal';
 export * from './pages/ModulTanitimDuzenleModal';
 export * from './createModuleManagementModule';
