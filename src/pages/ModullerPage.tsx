@@ -121,9 +121,10 @@ const ICON_COMPONENTS: Record<string, any> = {
 
 export interface ModullerPageProps {
   scope?: 'Admin' | 'ERP';
+  hideHeader?: boolean;
 }
 
-export function ModullerPage({ scope }: ModullerPageProps) {
+export function ModullerPage({ scope, hideHeader = false }: ModullerPageProps) {
   const { t } = useTranslation();
   const location = useLocation();
   const service = useModuleManagementService();
@@ -478,17 +479,9 @@ export function ModullerPage({ scope }: ModullerPageProps) {
         ? t('admin_modulleri_aciklama', 'Webakus SaaS yönetim paneline ait çekirdek yönetim modüllerini ve servis durumlarını görüntüleyin.')
         : t('ui_modulleri_aciklama', 'Dosya sistemindeki ERP modüllerini ve veritabanı kayıtlarını otomatik tarayın, tek tıkla sisteme kaydedin veya kaldırın.')}
       icon={activeScope === 'Admin' ? <ShieldCheck size={26} /> : <PackageOpen size={26} />}
-      customHeaderActions={
-        <button 
-          type="button"
-          onClick={() => fetchModuller(activeScope)} 
-          disabled={loading} 
-          className="btn btn-primary refresh-btn flex-row items-center gap-8"
-        >
-          <RefreshCcw size={18} className={loading ? 'spinning' : ''} /> 
-          <span>{loading ? t('taraniyor', 'Taranıyor...') : t('klasorleri_yeniden_tara', 'Klasörleri Yeniden Tara')}</span>
-        </button>
-      }
+      hideHeader={hideHeader}
+      onRefresh={() => fetchModuller(activeScope)}
+      refreshLoading={loading}
       searchPlaceholder={t('modul_arama_placeholder', 'Modül adı, kod veya açıklama ara...')}
       searchableFields={searchableFields}
       onSearchChange={(term) => setSearchTerm(term)}
