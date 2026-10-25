@@ -1,0 +1,432 @@
+/* ==========================================================================
+   @akalin/module_management - Modül Yönetimi Modülü Stilleri
+   ========================================================================== */
+
+.moduller-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  border-radius: var(--md3-shape-medium, 14px);
+  flex-wrap: wrap;
+  gap: 16px;
+  background: var(--bg-surface, var(--bg-secondary, #ffffff));
+  border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+}
+
+.moduller-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--md3-shape-small, 8px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary, #64748b);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  background: var(--bg-primary, #f8fafc);
+  color: var(--text-primary, #0f172a);
+}
+
+.tab-btn.active {
+  background: var(--accent-primary, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.tab-count {
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tab-btn:not(.active) .tab-count {
+  background: var(--bg-primary, #f8fafc);
+  border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+  color: var(--text-secondary, #64748b);
+}
+
+.tab-btn:not(.active) .count-success {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.tab-btn:not(.active) .count-warning {
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.tab-btn:not(.active) .count-danger {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.moduller-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.loading-state,
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: var(--md3-shape-medium, 14px);
+  background: var(--bg-surface, var(--bg-secondary, #ffffff));
+  border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+}
+
+.loading-icon {
+  color: var(--accent-primary, #6366f1);
+  margin-bottom: 8px;
+}
+
+.empty-icon-wrap {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: var(--bg-primary, #f8fafc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+  color: var(--text-secondary, #64748b);
+  margin-bottom: 8px;
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-weight: 600;
+  border-radius: var(--md3-shape-small, 8px);
+}
+
+/* Modül Kapsam & Tip Rozetleri */
+.modul-scope-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modul-scope-badge.scope-admin {
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.modul-scope-badge.scope-ui {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.modul-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(100, 116, 139, 0.12);
+  color: var(--text-secondary, #64748b);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+/* Tanıtım & Reklam Mesajı Modalı */
+.tanitim-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.tanitim-modal-container {
+  width: 100%;
+  max-width: 1100px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface, var(--bg-secondary, #ffffff));
+  border-radius: var(--md3-shape-large, 18px);
+  border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.tanitim-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+}
+
+.tanitim-modal-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary, #6366f1);
+}
+
+.tanitim-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+.tanitim-modal-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: var(--text-secondary, #64748b);
+}
+
+.tanitim-modal-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary, #64748b);
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.tanitim-modal-close-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary, #0f172a);
+}
+
+.tanitim-modal-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .tanitim-modal-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tanitim-form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tanitim-preview-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tanitim-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+}
+
+.preview-modal-mockup {
+  border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.1));
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--bg-primary, #f8fafc);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.preview-hero-banner {
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.12) 100%);
+  border-bottom: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+}
+
+.preview-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #f59e0b;
+  color: #ffffff;
+  margin-bottom: 4px;
+  width: fit-content;
+}
+
+.preview-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+.preview-subtitle {
+  margin: 10px 0 0 0;
+  font-size: 13px;
+  color: var(--text-secondary, #64748b);
+  line-height: 1.5;
+}
+
+.preview-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.preview-desc-box {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary, #0f172a);
+  background: var(--bg-surface, #ffffff);
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.06));
+}
+
+.preview-benefits-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preview-benefits-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary, #64748b);
+  letter-spacing: 0.5px;
+}
+
+.preview-benefits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-primary, #0f172a);
+}
+
+.preview-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: var(--bg-surface, #ffffff);
+  border-top: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+}
+
+.tanitim-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+  background: var(--bg-surface, var(--bg-secondary, #ffffff));
+}
+
+.avantajlar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.avantaj-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-primary, #f8fafc);
+  border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.06));
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.avantaj-text {
+  flex: 1;
+}
+
+.avantaj-remove-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #ef4444;
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.avantaj-remove-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}

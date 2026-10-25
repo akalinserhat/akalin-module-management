@@ -1,0 +1,33 @@
+{
+  "name": "@akalin/module_management",
+  "version": "1.0.0",
+  "description": "Webakus SaaS ve ERP ekosistemi için bağımsız Modül Yönetimi, Keşif ve Tanıtım Paketi",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "webakus",
+    "module-management",
+    "discovery",
+    "plugins",
+    "akalin",
+    "module"
+  ],
+  "author": "Akalin Software",
+  "license": "ISC",
+  "peerDependencies": {
+    "@akalin/module_core": "*",
+    "@akalin/ui": "*",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "react-router-dom": "^6.0.0 || ^7.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "lucide-react": "^1.16.0",
+    "react-hot-toast": "^2.4.1",
+    "react-i18next": "^13.0.0"
+  }
+}
