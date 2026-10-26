@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useMemo, type ReactNode } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -49,9 +49,15 @@ import {
   Sliders,
   Tag,
   Sparkles,
-  LayoutDashboard
+  LayoutDashboard,
+  ListOrdered,
+  ListTree,
+  LayoutGrid,
+  ExternalLink,
+  CheckCircle2
 } from 'lucide-react';
-import { BaseSystemPage, BaseSystemCard, ModuleSettingsRegistry } from '@akalin/ui';
+import { BaseSystemPage, BaseSystemCard, ModuleSettingsRegistry, DataTable, ActionMenu, type Column } from '@akalin/ui';
+import { ModuleRegistry, type IModuleEntityDefinition } from '@akalin/module_core';
 import { useModuleManagementService } from '../adapters/ModuleManagementServiceContext';
 import type { IModuleInfo } from '../types';
 import ModulEksiklikArabirimiModal from './ModulEksiklikArabirimiModal';
@@ -127,6 +133,7 @@ export interface ModullerPageProps {
 export function ModullerPage({ scope, hideHeader = false }: ModullerPageProps) {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const service = useModuleManagementService();
 
   const [moduller, setModuller] = useState<IModuleInfo[]>([]);
@@ -134,6 +141,7 @@ export function ModullerPage({ scope, hideHeader = false }: ModullerPageProps) {
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<'ALL' | 'REGISTERED' | 'UNREGISTERED' | 'OTHER'>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'tree' | 'grid'>('tree');
 
   const searchableFields = useMemo(() => [
     {
@@ -472,6 +480,243 @@ export function ModullerPage({ scope, hideHeader = false }: ModullerPageProps) {
     return actionList;
   };
 
+  // ─── HİYERARŞİK TREE VERİSİ (MODÜLLER -> LİSTELER -> KARTLAR / BELGELER) ──
+  const treeData = useMemo(() => {
+    return filteredModules.map((modul) => {
+      const entities = ModuleRegistry.getModuleEntities(modul.kod);
+      const entityTree = entities.tree && entities.tree.length > 0 ? entities.tree : entities.all;
+
+      const mapEntityToNode = (ent: IModuleEntityDefinition): any => ({
+        id: `${modul.kod}_${ent.id}`,
+        ad: ent.title || ent.titleKey,
+        kod: ent.id,
+        kategori: ent.category,
+        aciklama: ent.description,
+        rota: ent.route || ent.listRoute || ent.formRoute,
+        durum: 'REGISTERED',
+        aktifMi: true,
+        rawEntity: ent,
+        customActions: ent.customActions,
+        useStandardCrud: ent.useStandardCrud,
+        children: ent.children && ent.children.length > 0 ? ent.children.map(mapEntityToNode) : undefined
+      });
+
+      const childNodes = entityTree.map(mapEntityToNode);
+
+      return {
+        id: modul.kod || String(modul.id),
+        ad: modul.ad,
+        kod: modul.kod,
+        kategori: 'modul',
+        aciklama: modul.aciklama,
+        rota: modul.klasorYolu,
+        durum: getEffectiveDurum(modul),
+        aktifMi: modul.aktifMi,
+        isCore: modul.isCore,
+        rawModule: modul,
+        children: childNodes.length > 0 ? childNodes : undefined
+      };
+    });
+  }, [filteredModules]);
+
+  // ─── TREE VIEW SÜTUNLARI ────────────────────────────────────────────────
+  const treeColumns = useMemo<Column<any>[]>(() => [
+    {
+      id: 'ad',
+      header: t('modul_liste_kart_adi', 'Modül / Liste / Kart / Belge'),
+      sortable: true,
+      minWidth: '320px',
+      render: (node) => {
+        if (node.kategori === 'modul') {
+          return (
+            <div className="flex items-center gap-10 py-4">
+              <div className="text-primary flex items-center justify-center p-6 rounded-lg bg-surface-subtle border border-border">
+                {node.rawModule ? resolveIcon(node.rawModule) : <PackageOpen size={18} />}
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-6">
+                  <span className="font-bold text-primary text-sm">
+                    {node.ad}
+                  </span>
+                  {node.isCore && (
+                    <span className="badge badge-neutral text-xs font-semibold px-6 py-1 rounded">
+                      {t('cekirdek', 'Çekirdek')}
+                    </span>
+                  )}
+                </div>
+                {node.aciklama && (
+                  <span className="text-xs text-secondary line-clamp-1">{node.aciklama}</span>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        const isList = node.kategori === 'liste';
+        const isCard = node.kategori === 'kart';
+        const isDoc = node.kategori === 'belge';
+
+        return (
+          <div className="flex items-center gap-8 py-3">
+            <span
+              className={`badge text-xs font-semibold px-8 py-2 rounded-full flex items-center gap-4 ${
+                isList
+                  ? 'badge-primary'
+                  : isCard
+                  ? 'badge-secondary'
+                  : isDoc
+                  ? 'badge-success'
+                  : 'badge-info'
+              }`}
+            >
+              {isList ? (
+                <>
+                  <ListOrdered size={12} />
+                  {t('liste', 'Liste')}
+                </>
+              ) : isCard ? (
+                <>
+                  <CreditCard size={12} />
+                  {t('kart', 'Kart')}
+                </>
+              ) : isDoc ? (
+                <>
+                  <FileText size={12} />
+                  {t('belge', 'Belge')}
+                </>
+              ) : (
+                <>
+                  <Layers size={12} />
+                  {node.kategori}
+                </>
+              )}
+            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-primary text-sm">
+                {String(t(node.ad, { defaultValue: node.ad }))}
+              </span>
+              {node.aciklama && (
+                <span className="text-xs text-secondary line-clamp-1">{node.aciklama}</span>
+              )}
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      id: 'kod',
+      header: t('kod_id', 'Kod / ID'),
+      sortable: true,
+      width: '180px',
+      render: (node) => (
+        <span className="font-mono text-xs bg-surface-subtle px-8 py-3 rounded border border-border text-primary font-medium">
+          {node.kod}
+        </span>
+      )
+    },
+    {
+      id: 'kategori',
+      header: t('kategori', 'Kategori'),
+      sortable: true,
+      width: '120px',
+      render: (node) => {
+        let badgeColor = 'badge-neutral';
+        let label = t('modul', 'Modül');
+        if (node.kategori === 'liste') {
+          badgeColor = 'badge-primary';
+          label = t('liste', 'Liste');
+        } else if (node.kategori === 'kart') {
+          badgeColor = 'badge-secondary';
+          label = t('kart', 'Kart');
+        } else if (node.kategori === 'belge') {
+          badgeColor = 'badge-success';
+          label = t('belge', 'Belge');
+        }
+        return (
+          <span className={`badge ${badgeColor} text-xs font-semibold px-8 py-2 rounded`}>
+            {label}
+          </span>
+        );
+      }
+    },
+    {
+      id: 'rota',
+      header: t('rota_dizin', 'Rota / Dizin'),
+      sortable: true,
+      minWidth: '180px',
+      render: (node) => (
+        <span className="font-mono text-xs text-secondary truncate max-w-220 block" title={node.rota}>
+          {node.rota || '-'}
+        </span>
+      )
+    },
+    {
+      id: 'durum',
+      header: t('durum', 'Durum'),
+      width: '140px',
+      align: 'center',
+      render: (node) => {
+        if (node.kategori !== 'modul') {
+          return (
+            <span className="inline-flex items-center gap-4 text-xs font-semibold text-success bg-success-subtle px-8 py-2 rounded-full border border-success">
+              <CheckCircle2 size={12} />
+              {t('tescilli', 'Tescilli')}
+            </span>
+          );
+        }
+
+        const isRegistered = node.durum === 'REGISTERED' || node.isCore;
+        if (isRegistered && node.aktifMi) {
+          return (
+            <span className="inline-flex items-center gap-4 text-xs font-semibold text-success bg-success-subtle px-8 py-2 rounded-full border border-success">
+              <CheckCircle2 size={12} />
+              {node.isCore ? t('cekirdek_sistem', 'Çekirdek Sistem') : t('kayitli_aktif', 'Kayıtlı & Aktif')}
+            </span>
+          );
+        }
+        if (node.durum === 'UNREGISTERED') {
+          return (
+            <span className="inline-flex items-center gap-4 text-xs font-semibold text-warning bg-warning-subtle px-8 py-2 rounded-full border border-warning">
+              ⏳ {t('kayitsiz_yeni_badge', 'Kayıtsız (Yeni)')}
+            </span>
+          );
+        }
+        return (
+          <span className="inline-flex items-center gap-4 text-xs font-semibold text-secondary bg-surface-subtle px-8 py-2 rounded-full border border-border">
+            {t('pasif_durumda', 'Pasif')}
+          </span>
+        );
+      }
+    },
+    {
+      id: 'actions',
+      header: t('islemler', 'İşlemler'),
+      width: '90px',
+      align: 'right',
+      render: (node) => {
+        if (node.kategori === 'modul' && node.rawModule) {
+          const acts = getCardActions(node.rawModule);
+          return acts.length > 0 ? (
+            <ActionMenu items={acts} />
+          ) : null;
+        }
+        if (node.rota && node.rota.startsWith('/')) {
+          return (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm p-4 rounded hover:bg-surface-subtle"
+              title={t('sayfaya_git', 'Sayfaya Git')}
+              onClick={() => navigate(node.rota)}
+            >
+              <ExternalLink size={15} className="text-secondary" />
+            </button>
+          );
+        }
+        return null;
+      }
+    }
+  ], [t, navigate, getCardActions]);
+
   return (
     <BaseSystemPage
       title={activeScope === 'Admin' ? t('admin_paneli_modulleri', 'Admin Paneli Modülleri') : t('ui_modulleri_erp', 'UI Modülleri & Eklentiler (ERP)')}
@@ -489,7 +734,7 @@ export function ModullerPage({ scope, hideHeader = false }: ModullerPageProps) {
       baseRoute={activeScope === 'Admin' ? '/moduller/admin' : '/moduller/ui'}
     >
       {/* ─── İSTATİSTİK VE FİLTRE ÇUBUĞU ─────────────────────────── */}
-      <div className="moduller-toolbar glass-card">
+      <div className="moduller-toolbar glass-card flex items-center justify-between flex-wrap gap-12">
         <div className="moduller-tabs">
           <button
             type="button"
@@ -522,9 +767,35 @@ export function ModullerPage({ scope, hideHeader = false }: ModullerPageProps) {
             </button>
           )}
         </div>
+
+        {/* Görünüm Değiştirici (Tree / Grid) */}
+        <div className="flex items-center gap-4 bg-surface-subtle p-2 rounded-lg border border-border">
+          <button
+            type="button"
+            className={`btn btn-sm flex items-center gap-6 px-10 py-4 rounded-md text-xs font-semibold transition-all ${
+              viewMode === 'tree' ? 'btn-primary shadow-sm' : 'text-secondary hover:text-primary'
+            }`}
+            onClick={() => setViewMode('tree')}
+            title={t('agac_gorunumu', 'Ağaç Görünümü (DataTable)')}
+          >
+            <ListTree size={14} />
+            <span>{t('agac_gorunumu', 'Ağaç (TreeView)')}</span>
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm flex items-center gap-6 px-10 py-4 rounded-md text-xs font-semibold transition-all ${
+              viewMode === 'grid' ? 'btn-primary shadow-sm' : 'text-secondary hover:text-primary'
+            }`}
+            onClick={() => setViewMode('grid')}
+            title={t('kart_gorunumu', 'Kart Görünümü')}
+          >
+            <LayoutGrid size={14} />
+            <span>{t('kartlar', 'Kartlar')}</span>
+          </button>
+        </div>
       </div>
 
-      {/* ─── MODÜL KARTLARI IZGARASI ─────────────────────────────── */}
+      {/* ─── MODÜL KARTLARI VEYA HİYERARŞİK TREEVIEW TABLOSU ──────── */}
       {loading ? (
         <div className="glass-card loading-state">
           <RefreshCcw size={36} className="spinning loading-icon" />
@@ -542,6 +813,20 @@ export function ModullerPage({ scope, hideHeader = false }: ModullerPageProps) {
               ? t('arama_kriterine_uygun_modul_bulunamadi', '"{{term}}" arama kriterine uygun modül bulunamadı.', { term: searchTerm })
               : t('secili_filtreye_ait_modul_yok', 'Seçili filtreye ait herhangi bir modül bulunmuyor.')}
           </p>
+        </div>
+      ) : viewMode === 'tree' ? (
+        <div className="glass-card rounded-xl border border-border overflow-hidden">
+          <DataTable<any>
+            data={treeData}
+            columns={treeColumns}
+            enableTreeView={true}
+            childrenField="children"
+            defaultExpandAll={true}
+            treeColumnId="ad"
+            keyExtractor={(item) => item.id}
+            pageSize={100}
+            emptyMessage={t('modul_bulunamadi', 'Modül veya varlık bulunamadı.')}
+          />
         </div>
       ) : (
         <div className="moduller-grid">

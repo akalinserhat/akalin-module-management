@@ -24,8 +24,10 @@ import {
   BaseDropdownSecici,
   FieldError,
   PageLoader,
+  DataTable,
   type BaseTabItem,
-  type ActionMenuItem
+  type ActionMenuItem,
+  type Column
 } from '@akalin/ui';
 import {
   ShieldCheck,
@@ -39,9 +41,10 @@ import {
   CheckCircle2,
   Lock,
   Layers,
-  Inbox
+  Inbox,
+  ListOrdered
 } from 'lucide-react';
-import { ModuleRegistry } from '@akalin/module_core';
+import { ModuleRegistry, type IModuleEntityDefinition } from '@akalin/module_core';
 import type { ModuleConfigItem } from '../types';
 import { MODULE_ICON_OPTIONS, renderModuleIcon } from '../constants/moduleIcons';
 import { validateModulFeatureField, validateModulFeatureForm } from './ModulFeatureFormValidation';
@@ -345,6 +348,134 @@ export function ModulFeatureForm({
     ];
   }, [formData.enabled, formData.isCore, handleFieldChange, handleReset, t]);
 
+  // Varlıklar Tablosu Sütunları
+  const entityColumns = useMemo<Column<IModuleEntityDefinition>[]>(() => [
+    {
+      id: 'title',
+      header: t('baslik_varlik_adi', 'Başlık / Tanım'),
+      sortable: true,
+      minWidth: '280px',
+      render: (item) => {
+        const isList = item.category === 'liste';
+        const isCard = item.category === 'kart';
+        const isDoc = item.category === 'belge';
+
+        return (
+          <div className="flex items-center gap-8 py-4">
+            <span
+              className={`badge text-xs font-semibold px-8 py-2 rounded-full flex items-center gap-4 ${
+                isList
+                  ? 'badge-primary'
+                  : isCard
+                  ? 'badge-secondary'
+                  : isDoc
+                  ? 'badge-success'
+                  : 'badge-info'
+              }`}
+            >
+              {isList ? (
+                <>
+                  <ListOrdered size={13} />
+                  {t('liste', 'Liste')}
+                </>
+              ) : isCard ? (
+                <>
+                  <CreditCard size={13} />
+                  {t('kart', 'Kart')}
+                </>
+              ) : isDoc ? (
+                <>
+                  <FileText size={13} />
+                  {t('belge', 'Belge')}
+                </>
+              ) : (
+                <>
+                  <Layers size={13} />
+                  {item.category}
+                </>
+              )}
+            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-primary text-sm">
+                {t(item.titleKey, item.title || item.titleKey)}
+              </span>
+              {item.description && (
+                <span className="text-xs text-secondary line-clamp-1">{item.description}</span>
+              )}
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      id: 'id',
+      header: t('kimlik_kodu', 'Kimlik (ID)'),
+      sortable: true,
+      width: '160px',
+      render: (item) => (
+        <span className="font-mono text-xs bg-surface-subtle px-8 py-3 rounded border border-border text-primary font-medium">
+          {item.id}
+        </span>
+      )
+    },
+    {
+      id: 'route',
+      header: t('rota', 'Rota'),
+      sortable: true,
+      width: '180px',
+      render: (item) => {
+        const routePath = item.route || item.listRoute || item.formRoute;
+        return routePath ? (
+          <span className="font-mono text-xs text-secondary font-medium">
+            {routePath}
+          </span>
+        ) : (
+          <span className="text-muted text-xs">-</span>
+        );
+      }
+    },
+    {
+      id: 'permissions',
+      header: t('yetkiler_ve_eylemler', 'Yetkiler & Eylemler'),
+      minWidth: '220px',
+      render: (item) => (
+        <div className="flex items-center gap-6 flex-wrap">
+          {item.useStandardCrud !== false && (
+            <span className="badge badge-neutral text-xs px-6 py-2 rounded border border-border text-secondary flex items-center gap-4">
+              <Lock size={11} />
+              {t('crud', 'CRUD')}
+            </span>
+          )}
+          {item.customActions?.map((act) => (
+            <span
+              key={act.action}
+              className={`badge text-xs px-8 py-2 rounded border ${
+                act.danger
+                  ? 'border-danger text-danger bg-danger-subtle'
+                  : 'border-border text-secondary bg-surface-subtle'
+              }`}
+              title={act.description}
+            >
+              {act.labelKey}
+            </span>
+          ))}
+        </div>
+      )
+    },
+    {
+      id: 'status',
+      header: t('durum', 'Durum'),
+      width: '120px',
+      align: 'center',
+      render: () => (
+        <span className="inline-flex items-center gap-4 text-xs font-semibold text-success bg-success-subtle px-8 py-2 rounded-full border border-success">
+          <CheckCircle2 size={13} />
+          {t('tescilli', 'Tescilli')}
+        </span>
+      )
+    }
+  ], [t]);
+
   // Sekmeler (TabLayout)
   const tabs = useMemo<BaseTabItem[]>(() => [
     {
@@ -357,7 +488,7 @@ export function ModulFeatureForm({
           <div className="flex items-center justify-between gap-16 mb-16 flex-wrap">
             <div className="flex items-center gap-8">
               <span className="text-sm text-secondary font-medium">
-                {t('tescilli_varliklar_ozet', 'Modül bünyesinde tescil edilmiş ve menüde aktif olan kart ve belgeler.')}
+                {t('tescilli_varliklar_ozet', 'Modül bünyesinde tescil edilmiş ve menüde aktif olan liste, kart ve belgeler.')}
               </span>
               <span className="badge badge-neutral text-xs font-semibold px-8 py-2 rounded-full border border-border">
                 {moduleEntities.all.length} {t('kayit', 'Kayıt')}
@@ -365,103 +496,20 @@ export function ModulFeatureForm({
             </div>
           </div>
 
-          {/* Liste veya Boş Durum */}
-          {moduleEntities.all.length === 0 ? (
-            <div className="glass-card p-32 text-center rounded-xl border border-dashed border-border my-16">
-              <div className="flex flex-col items-center justify-center gap-12 text-secondary">
-                <Inbox size={40} className="opacity-40" />
-                <h4 className="text-base font-semibold text-primary m-0">
-                  {t('tanimli_varlik_yok', 'Tanımlı Belge veya Kart Bulunamadı')}
-                </h4>
-                <p className="text-sm max-w-md m-0">
-                  {t(
-                    'tanimli_varlik_yok_desc',
-                    'Bu modül için modül manifestosunda (entities.ts) kayıtlı herhangi bir kart veya belge bulunmuyor. Kayıt edilmemiş belgeler menüde listelenmez.'
-                  )}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-              {moduleEntities.all.map((entity) => (
-                <div
-                  key={entity.id}
-                  className="entity-card glass-card p-16 rounded-xl border border-border hover:border-primary transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-8 mb-8">
-                      <div className="flex items-center gap-8">
-                        {entity.category === 'belge' ? (
-                          <span className="badge badge-success text-xs font-semibold px-8 py-2 rounded-full flex items-center gap-4">
-                            <FileText size={13} />
-                            {t('belge', 'Belge')}
-                          </span>
-                        ) : entity.category === 'kart' ? (
-                          <span className="badge badge-primary text-xs font-semibold px-8 py-2 rounded-full flex items-center gap-4">
-                            <CreditCard size={13} />
-                            {t('kart', 'Kart')}
-                          </span>
-                        ) : (
-                          <span className="badge badge-info text-xs font-semibold px-8 py-2 rounded-full flex items-center gap-4">
-                            <Layers size={13} />
-                            {entity.category}
-                          </span>
-                        )}
-                        <h4 className="text-sm font-semibold text-primary m-0">
-                          {t(entity.titleKey, entity.title || entity.titleKey)}
-                        </h4>
-                      </div>
-
-                      <span className="flex items-center gap-4 text-xs font-semibold text-success bg-success-subtle px-8 py-2 rounded-full border border-success">
-                        <CheckCircle2 size={13} />
-                        {t('tescilli', 'Tescilli')}
-                      </span>
-                    </div>
-
-                    {/* Kod & Rota */}
-                    <div className="text-xs space-y-4 my-8 font-mono">
-                      <div className="flex items-center gap-8 text-secondary">
-                        <span className="font-semibold text-muted">ID:</span>
-                        <span className="bg-surface-subtle px-6 py-2 rounded border border-border">{entity.id}</span>
-                      </div>
-                      {entity.route && (
-                        <div className="flex items-center gap-8 text-secondary">
-                          <span className="font-semibold text-muted">Rota:</span>
-                          <span className="bg-surface-subtle px-6 py-2 rounded border border-border text-primary font-medium">
-                            {entity.route}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* CRUD ve İzin Özellikleri */}
-                    <div className="flex items-center gap-8 mt-12 flex-wrap">
-                      {entity.useStandardCrud !== false && (
-                        <span className="badge badge-neutral text-xs px-8 py-2 rounded border border-border text-secondary flex items-center gap-4">
-                          <Lock size={12} />
-                          {t('standart_crud', 'CRUD Yetkili')}
-                        </span>
-                      )}
-
-                      {entity.customActions?.map((act) => (
-                        <span
-                          key={act.action}
-                          className={`badge text-xs px-8 py-2 rounded border ${
-                            act.danger
-                              ? 'border-danger text-danger bg-danger-subtle'
-                              : 'border-border text-secondary bg-surface-subtle'
-                          }`}
-                          title={act.description}
-                        >
-                          {act.labelKey}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Hiyerarşik DataTable (TreeView Görünümü) */}
+          <div className="glass-card rounded-xl border border-border overflow-hidden">
+            <DataTable<IModuleEntityDefinition>
+              data={moduleEntities.tree && moduleEntities.tree.length > 0 ? moduleEntities.tree : moduleEntities.all}
+              columns={entityColumns}
+              enableTreeView={true}
+              childrenField="children"
+              defaultExpandAll={true}
+              treeColumnId="title"
+              keyExtractor={(item) => item.id}
+              pageSize={100}
+              emptyMessage={t('tanimli_varlik_yok', 'Bu modüle ait tescilli liste, kart veya belge bulunamadı.')}
+            />
+          </div>
         </div>
       )
     },
