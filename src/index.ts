@@ -9,7 +9,6 @@ export * from './services/httpClient';
 export * from './services/moduleManagementService';
 export * from './adapters/ModuleManagementServiceContext';
 export * from './constants/moduleIcons';
-export * from './components/UndoNotificationBar';
 export * from './pages/ModulYonetimiPage';
 export * from './pages/ModulFeatureForm';
 export * from './pages/ModulFeatureFormValidation';

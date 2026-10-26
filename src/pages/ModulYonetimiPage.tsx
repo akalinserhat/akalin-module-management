@@ -41,7 +41,7 @@ import {
   type ActionMenuItem,
   type BaseTabItem
 } from '@akalin/ui';
-import UndoNotificationBar from '../components/UndoNotificationBar';
+import { UndoNotificationBar } from '@akalin/notification_module';
 import { renderModuleIcon } from '../constants/moduleIcons';
 import ModulFeatureForm from './ModulFeatureForm';
 import type { ModuleConfigItem } from '../types';

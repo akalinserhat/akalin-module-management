@@ -29,6 +29,8 @@
       "lucide-react": ["../webakus/node_modules/lucide-react"],
       "@akalin/ui": ["../webakus/node_modules/@akalin/ui/src/index.ts"],
       "@akalin/ui/*": ["../webakus/node_modules/@akalin/ui/src/*"],
+      "@akalin/notification_module": ["../akalin-notification-module/src/index.ts", "../webakus/node_modules/@akalin/notification_module/src/index.ts"],
+      "@akalin/notification_module/*": ["../akalin-notification-module/src/*", "../webakus/node_modules/@akalin/notification_module/src/*"],
       "@akalin/module_core": ["../webakus/node_modules/@akalin/module_core/src/index.ts"],
       "@akalin/module_core/*": ["../webakus/node_modules/@akalin/module_core/src/*"]
     }
