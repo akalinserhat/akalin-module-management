@@ -117,12 +117,18 @@ export function ModulFeatureForm({
         all: [...documents, ...cards]
       };
     }
-    const fromRegistry = ModuleRegistry.getModuleEntities(effectiveModuleId || formData.id || '');
+    let fromRegistry = ModuleRegistry.getModuleEntities(effectiveModuleId || formData.id || '');
+    if ((!fromRegistry.cards?.length && !fromRegistry.documents?.length) && formData.package) {
+      const fromPkg = ModuleRegistry.getModuleEntities(formData.package);
+      if (fromPkg.cards?.length || fromPkg.documents?.length || fromPkg.reports?.length) {
+        fromRegistry = fromPkg;
+      }
+    }
     return {
       ...fromRegistry,
       all: [...fromRegistry.documents, ...fromRegistry.cards, ...fromRegistry.reports, ...fromRegistry.operations]
     };
-  }, [formData.cards, formData.documents, formData.id, effectiveModuleId]);
+  }, [formData.cards, formData.documents, formData.id, formData.package, effectiveModuleId]);
 
   const filteredEntities = useMemo(() => {
     if (entityFilter === 'all') return moduleEntities.all;
