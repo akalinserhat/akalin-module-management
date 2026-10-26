@@ -3,6 +3,7 @@
  */
 
 import type { ReactNode } from 'react';
+import type { IModuleEntityDefinition } from '@akalin/module_core';
 
 export type ModuleDurum = 'REGISTERED' | 'UNREGISTERED' | 'DISABLED' | 'MISSING';
 
@@ -94,5 +95,7 @@ export interface ModuleConfigItem {
   iconName?: string;
   description?: string;
   version?: string;
+  cards?: IModuleEntityDefinition[];
+  documents?: IModuleEntityDefinition[];
 }
 

@@ -32,8 +32,16 @@ import {
   Power,
   RotateCcw,
   Sliders,
-  FileCode
+  FileCode,
+  Files,
+  FileText,
+  CreditCard,
+  CheckCircle2,
+  Lock,
+  Layers,
+  Inbox
 } from 'lucide-react';
+import { ModuleRegistry } from '@akalin/module_core';
 import type { ModuleConfigItem } from '../types';
 import { MODULE_ICON_OPTIONS, renderModuleIcon } from '../constants/moduleIcons';
 import { validateModulFeatureField, validateModulFeatureForm } from './ModulFeatureFormValidation';
@@ -93,7 +101,33 @@ export function ModulFeatureForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<boolean>(!initialData && Boolean(effectiveModuleId));
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [activeTabId, setActiveTabId] = useState<string>('genel');
+  const [activeTabId, setActiveTabId] = useState<string>('belgeler-kartlar');
+  const [entityFilter, setEntityFilter] = useState<'all' | 'belge' | 'kart'>('all');
+
+  // Modüle ait tescilli kart ve belgeler (ModuleRegistry / entities.ts)
+  const moduleEntities = useMemo(() => {
+    if (formData.cards?.length || formData.documents?.length) {
+      const cards = formData.cards || [];
+      const documents = formData.documents || [];
+      return {
+        cards,
+        documents,
+        reports: [],
+        operations: [],
+        all: [...documents, ...cards]
+      };
+    }
+    const fromRegistry = ModuleRegistry.getModuleEntities(effectiveModuleId || formData.id || '');
+    return {
+      ...fromRegistry,
+      all: [...fromRegistry.documents, ...fromRegistry.cards, ...fromRegistry.reports, ...fromRegistry.operations]
+    };
+  }, [formData.cards, formData.documents, formData.id, effectiveModuleId]);
+
+  const filteredEntities = useMemo(() => {
+    if (entityFilter === 'all') return moduleEntities.all;
+    return moduleEntities.all.filter((item) => item.category === entityFilter);
+  }, [moduleEntities, entityFilter]);
 
   // Modül verisini API'den yükle (Eğer initialData yoksa)
   const loadModuleData = useCallback(async () => {
@@ -314,8 +348,163 @@ export function ModulFeatureForm({
   // Sekmeler (TabLayout)
   const tabs = useMemo<BaseTabItem[]>(() => [
     {
+      id: 'belgeler-kartlar',
+      label: t('belgeler_ve_kartlar', 'Belgeler ve Kartlar'),
+      icon: <Files size={16} />,
+      content: (
+        <div className="modul-entities-tab-content pt-16">
+          {/* Üst Bilgi ve Filtreleme Başlığı */}
+          <div className="flex items-center justify-between gap-16 mb-16 flex-wrap">
+            <div className="flex items-center gap-8">
+              <span className="text-sm text-secondary font-medium">
+                {t('tescilli_varliklar_ozet', 'Modül bünyesinde tescil edilmiş ve menüde aktif olan kart ve belgeler.')}
+              </span>
+              <span className="badge badge-neutral text-xs font-semibold px-8 py-2 rounded-full border border-border">
+                {moduleEntities.all.length} {t('kayit', 'Kayıt')}
+              </span>
+            </div>
+
+            {/* Kategori Filtre Butonları */}
+            <div className="flex items-center gap-4 p-4 rounded-lg border border-border bg-surface-subtle">
+              <button
+                type="button"
+                className={`px-12 py-4 rounded-md text-xs font-medium cursor-pointer transition-all ${
+                  entityFilter === 'all'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-secondary hover:text-primary'
+                }`}
+                onClick={() => setEntityFilter('all')}
+              >
+                {t('tumu', 'Tümü')} ({moduleEntities.all.length})
+              </button>
+              <button
+                type="button"
+                className={`px-12 py-4 rounded-md text-xs font-medium cursor-pointer transition-all ${
+                  entityFilter === 'belge'
+                    ? 'bg-success text-white shadow-sm'
+                    : 'text-secondary hover:text-success'
+                }`}
+                onClick={() => setEntityFilter('belge')}
+              >
+                {t('belgeler', 'Belgeler')} ({moduleEntities.documents.length})
+              </button>
+              <button
+                type="button"
+                className={`px-12 py-4 rounded-md text-xs font-medium cursor-pointer transition-all ${
+                  entityFilter === 'kart'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-secondary hover:text-primary'
+                }`}
+                onClick={() => setEntityFilter('kart')}
+              >
+                {t('kartlar', 'Kartlar')} ({moduleEntities.cards.length})
+              </button>
+            </div>
+          </div>
+
+          {/* Liste veya Boş Durum */}
+          {filteredEntities.length === 0 ? (
+            <div className="glass-card p-32 text-center rounded-xl border border-dashed border-border my-16">
+              <div className="flex flex-col items-center justify-center gap-12 text-secondary">
+                <Inbox size={40} className="opacity-40" />
+                <h4 className="text-base font-semibold text-primary m-0">
+                  {t('tanimli_varlik_yok', 'Tanımlı Belge veya Kart Bulunamadı')}
+                </h4>
+                <p className="text-sm max-w-md m-0">
+                  {t(
+                    'tanimli_varlik_yok_desc',
+                    'Bu modül için modül manifestosunda (entities.ts) kayıtlı herhangi bir kart veya belge bulunmuyor. Kayıt edilmemiş belgeler menüde listelenmez.'
+                  )}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+              {filteredEntities.map((entity) => (
+                <div
+                  key={entity.id}
+                  className="entity-card glass-card p-16 rounded-xl border border-border hover:border-primary transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-8 mb-8">
+                      <div className="flex items-center gap-8">
+                        {entity.category === 'belge' ? (
+                          <span className="badge badge-success text-xs font-semibold px-8 py-2 rounded-full flex items-center gap-4">
+                            <FileText size={13} />
+                            {t('belge', 'Belge')}
+                          </span>
+                        ) : entity.category === 'kart' ? (
+                          <span className="badge badge-primary text-xs font-semibold px-8 py-2 rounded-full flex items-center gap-4">
+                            <CreditCard size={13} />
+                            {t('kart', 'Kart')}
+                          </span>
+                        ) : (
+                          <span className="badge badge-info text-xs font-semibold px-8 py-2 rounded-full flex items-center gap-4">
+                            <Layers size={13} />
+                            {entity.category}
+                          </span>
+                        )}
+                        <h4 className="text-sm font-semibold text-primary m-0">
+                          {t(entity.titleKey, entity.title || entity.titleKey)}
+                        </h4>
+                      </div>
+
+                      <span className="flex items-center gap-4 text-xs font-semibold text-success bg-success-subtle px-8 py-2 rounded-full border border-success">
+                        <CheckCircle2 size={13} />
+                        {t('tescilli', 'Tescilli')}
+                      </span>
+                    </div>
+
+                    {/* Kod & Rota */}
+                    <div className="text-xs space-y-4 my-8 font-mono">
+                      <div className="flex items-center gap-8 text-secondary">
+                        <span className="font-semibold text-muted">ID:</span>
+                        <span className="bg-surface-subtle px-6 py-2 rounded border border-border">{entity.id}</span>
+                      </div>
+                      {entity.route && (
+                        <div className="flex items-center gap-8 text-secondary">
+                          <span className="font-semibold text-muted">Rota:</span>
+                          <span className="bg-surface-subtle px-6 py-2 rounded border border-border text-primary font-medium">
+                            {entity.route}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* CRUD ve İzin Özellikleri */}
+                    <div className="flex items-center gap-8 mt-12 flex-wrap">
+                      {entity.useStandardCrud !== false && (
+                        <span className="badge badge-neutral text-xs px-8 py-2 rounded border border-border text-secondary flex items-center gap-4">
+                          <Lock size={12} />
+                          {t('standart_crud', 'CRUD Yetkili')}
+                        </span>
+                      )}
+
+                      {entity.customActions?.map((act) => (
+                        <span
+                          key={act.action}
+                          className={`badge text-xs px-8 py-2 rounded border ${
+                            act.danger
+                              ? 'border-danger text-danger bg-danger-subtle'
+                              : 'border-border text-secondary bg-surface-subtle'
+                          }`}
+                          title={act.description}
+                        >
+                          {act.labelKey}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
       id: 'genel',
-      label: t('genel_ozellikler', 'Genel Özellikler'),
+      label: t('genel_bilgiler', 'Genel Bilgiler'),
       icon: <Sliders size={16} />,
       content: (
         <div className="modul-feature-tab-content pt-16">
@@ -490,6 +679,9 @@ export function ModulFeatureForm({
       )
     }
   ], [
+    filteredEntities,
+    moduleEntities,
+    entityFilter,
     formData,
     errors,
     effectiveModuleId,
