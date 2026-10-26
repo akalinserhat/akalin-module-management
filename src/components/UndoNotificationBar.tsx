@@ -3,4 +3,8 @@
  * @akalin/notification_module paketi üzerinden re-export edilir.
  */
 
-export { default, UndoNotificationBar, type UndoNotificationBarProps } from '@akalin/notification_module';
+import { UndoNotificationBar } from '@akalin/notification_module';
+
+export { UndoNotificationBar };
+export type { UndoNotificationBarProps } from '@akalin/notification_module';
+export default UndoNotificationBar;
