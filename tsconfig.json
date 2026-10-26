@@ -17,6 +17,7 @@
     "noFallthroughCasesInSwitch": false,
     "allowJs": true,
     "paths": {
+      "@microsoft/signalr": ["../webakus/node_modules/@microsoft/signalr"],
       "react": ["../webakus/Webakus.UI/node_modules/@types/react"],
       "react/*": ["../webakus/Webakus.UI/node_modules/@types/react/*"],
       "react-dom": ["../webakus/Webakus.UI/node_modules/@types/react-dom"],
