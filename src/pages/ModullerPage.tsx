@@ -483,7 +483,19 @@ export function ModullerPage({ scope, hideHeader = false }: ModullerPageProps) {
   // ─── HİYERARŞİK TREE VERİSİ (MODÜLLER -> LİSTELER -> KARTLAR / BELGELER) ──
   const treeData = useMemo(() => {
     return filteredModules.map((modul) => {
-      const entities = ModuleRegistry.getModuleEntities(modul.kod);
+      let entities = ModuleRegistry.getModuleEntities(modul.kod);
+      if ((!entities.tree || entities.tree.length === 0) && modul.ad) {
+        const fromAd = ModuleRegistry.getModuleEntities(modul.ad);
+        if (fromAd.tree && fromAd.tree.length > 0) {
+          entities = fromAd;
+        }
+      }
+      if ((!entities.tree || entities.tree.length === 0) && modul.id) {
+        const fromId = ModuleRegistry.getModuleEntities(String(modul.id));
+        if (fromId.tree && fromId.tree.length > 0) {
+          entities = fromId;
+        }
+      }
       const entityTree = entities.tree && entities.tree.length > 0 ? entities.tree : entities.all;
 
       const mapEntityToNode = (ent: IModuleEntityDefinition): any => ({

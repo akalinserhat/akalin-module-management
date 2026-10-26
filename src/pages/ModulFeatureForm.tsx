@@ -106,31 +106,41 @@ export function ModulFeatureForm({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [activeTabId, setActiveTabId] = useState<string>('belgeler-kartlar');
 
-  // Modüle ait tescilli kart ve belgeler (ModuleRegistry / entities.ts)
+  // Modüle ait tescilli liste, kart ve belgeler (ModuleRegistry / entities.ts)
   const moduleEntities = useMemo(() => {
-    if (formData.cards?.length || formData.documents?.length) {
+    let fromRegistry = ModuleRegistry.getModuleEntities(effectiveModuleId || formData.id || '');
+    if ((!fromRegistry.tree?.length && !fromRegistry.lists?.length && !fromRegistry.cards?.length && !fromRegistry.documents?.length) && formData.package) {
+      const fromPkg = ModuleRegistry.getModuleEntities(formData.package);
+      if (fromPkg.tree?.length || fromPkg.lists?.length || fromPkg.cards?.length || fromPkg.documents?.length || fromPkg.reports?.length) {
+        fromRegistry = fromPkg;
+      }
+    }
+
+    if (fromRegistry.tree && fromRegistry.tree.length > 0) {
+      return fromRegistry;
+    }
+
+    if (fromRegistry.lists?.length || fromRegistry.cards?.length || fromRegistry.documents?.length) {
+      return fromRegistry;
+    }
+
+    if (formData.lists?.length || formData.cards?.length || formData.documents?.length) {
+      const lists = formData.lists || [];
       const cards = formData.cards || [];
       const documents = formData.documents || [];
       return {
+        lists,
         cards,
         documents,
         reports: [],
         operations: [],
-        all: [...documents, ...cards]
+        tree: lists.length > 0 ? lists : [...documents, ...cards],
+        all: [...lists, ...documents, ...cards]
       };
     }
-    let fromRegistry = ModuleRegistry.getModuleEntities(effectiveModuleId || formData.id || '');
-    if ((!fromRegistry.cards?.length && !fromRegistry.documents?.length) && formData.package) {
-      const fromPkg = ModuleRegistry.getModuleEntities(formData.package);
-      if (fromPkg.cards?.length || fromPkg.documents?.length || fromPkg.reports?.length) {
-        fromRegistry = fromPkg;
-      }
-    }
-    return {
-      ...fromRegistry,
-      all: [...fromRegistry.documents, ...fromRegistry.cards, ...fromRegistry.reports, ...fromRegistry.operations]
-    };
-  }, [formData.cards, formData.documents, formData.id, formData.package, effectiveModuleId]);
+
+    return fromRegistry;
+  }, [formData.lists, formData.cards, formData.documents, formData.id, formData.package, effectiveModuleId]);
 
   // Modül verisini API'den yükle (Eğer initialData yoksa)
   const loadModuleData = useCallback(async () => {

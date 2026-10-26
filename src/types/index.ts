@@ -95,6 +95,7 @@ export interface ModuleConfigItem {
   iconName?: string;
   description?: string;
   version?: string;
+  lists?: IModuleEntityDefinition[];
   cards?: IModuleEntityDefinition[];
   documents?: IModuleEntityDefinition[];
 }
