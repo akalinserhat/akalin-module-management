@@ -102,7 +102,6 @@ export function ModulFeatureForm({
   const [loading, setLoading] = useState<boolean>(!initialData && Boolean(effectiveModuleId));
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [activeTabId, setActiveTabId] = useState<string>('belgeler-kartlar');
-  const [entityFilter, setEntityFilter] = useState<'all' | 'belge' | 'kart'>('all');
 
   // Modüle ait tescilli kart ve belgeler (ModuleRegistry / entities.ts)
   const moduleEntities = useMemo(() => {
@@ -129,11 +128,6 @@ export function ModulFeatureForm({
       all: [...fromRegistry.documents, ...fromRegistry.cards, ...fromRegistry.reports, ...fromRegistry.operations]
     };
   }, [formData.cards, formData.documents, formData.id, formData.package, effectiveModuleId]);
-
-  const filteredEntities = useMemo(() => {
-    if (entityFilter === 'all') return moduleEntities.all;
-    return moduleEntities.all.filter((item) => item.category === entityFilter);
-  }, [moduleEntities, entityFilter]);
 
   // Modül verisini API'den yükle (Eğer initialData yoksa)
   const loadModuleData = useCallback(async () => {
@@ -359,7 +353,7 @@ export function ModulFeatureForm({
       icon: <Files size={16} />,
       content: (
         <div className="modul-entities-tab-content pt-16">
-          {/* Üst Bilgi ve Filtreleme Başlığı */}
+          {/* Üst Bilgi Başlığı */}
           <div className="flex items-center justify-between gap-16 mb-16 flex-wrap">
             <div className="flex items-center gap-8">
               <span className="text-sm text-secondary font-medium">
@@ -369,47 +363,10 @@ export function ModulFeatureForm({
                 {moduleEntities.all.length} {t('kayit', 'Kayıt')}
               </span>
             </div>
-
-            {/* Kategori Filtre Butonları */}
-            <div className="flex items-center gap-4 p-4 rounded-lg border border-border bg-surface-subtle">
-              <button
-                type="button"
-                className={`px-12 py-4 rounded-md text-xs font-medium cursor-pointer transition-all ${
-                  entityFilter === 'all'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-secondary hover:text-primary'
-                }`}
-                onClick={() => setEntityFilter('all')}
-              >
-                {t('tumu', 'Tümü')} ({moduleEntities.all.length})
-              </button>
-              <button
-                type="button"
-                className={`px-12 py-4 rounded-md text-xs font-medium cursor-pointer transition-all ${
-                  entityFilter === 'belge'
-                    ? 'bg-success text-white shadow-sm'
-                    : 'text-secondary hover:text-success'
-                }`}
-                onClick={() => setEntityFilter('belge')}
-              >
-                {t('belgeler', 'Belgeler')} ({moduleEntities.documents.length})
-              </button>
-              <button
-                type="button"
-                className={`px-12 py-4 rounded-md text-xs font-medium cursor-pointer transition-all ${
-                  entityFilter === 'kart'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-secondary hover:text-primary'
-                }`}
-                onClick={() => setEntityFilter('kart')}
-              >
-                {t('kartlar', 'Kartlar')} ({moduleEntities.cards.length})
-              </button>
-            </div>
           </div>
 
           {/* Liste veya Boş Durum */}
-          {filteredEntities.length === 0 ? (
+          {moduleEntities.all.length === 0 ? (
             <div className="glass-card p-32 text-center rounded-xl border border-dashed border-border my-16">
               <div className="flex flex-col items-center justify-center gap-12 text-secondary">
                 <Inbox size={40} className="opacity-40" />
@@ -426,7 +383,7 @@ export function ModulFeatureForm({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-              {filteredEntities.map((entity) => (
+              {moduleEntities.all.map((entity) => (
                 <div
                   key={entity.id}
                   className="entity-card glass-card p-16 rounded-xl border border-border hover:border-primary transition-all flex flex-col justify-between"
@@ -685,9 +642,7 @@ export function ModulFeatureForm({
       )
     }
   ], [
-    filteredEntities,
     moduleEntities,
-    entityFilter,
     formData,
     errors,
     effectiveModuleId,
