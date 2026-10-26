@@ -12,6 +12,8 @@ import {
 } from './adapters/ModuleManagementServiceContext';
 
 const LazyModullerPage = lazy(() => import('./pages/ModullerPage'));
+const LazyModulYonetimiPage = lazy(() => import('./pages/ModulYonetimiPage'));
+const LazyModulFeatureForm = lazy(() => import('./pages/ModulFeatureForm'));
 
 export function createModuleManagementModule(
   options: ModuleManagementModuleOptions = {}
@@ -26,7 +28,7 @@ export function createModuleManagementModule(
       React.createElement(
         Suspense,
         { fallback: React.createElement('div', { className: 'p-16 text-muted' }, 'Yükleniyor...') },
-        React.createElement(Component, props)
+        React.createElement(Component, { baseRoute, ...props })
       )
     );
   };
@@ -40,18 +42,23 @@ export function createModuleManagementModule(
     routes: [
       {
         path: baseRoute,
-        element: withProvider(LazyModullerPage),
+        element: withProvider(LazyModulYonetimiPage),
         title: 'Modül Yönetimi'
       },
       {
         path: `${baseRoute}/ui`,
-        element: withProvider(LazyModullerPage, { scope: 'ERP' }),
+        element: withProvider(LazyModulYonetimiPage, { scope: 'ERP' }),
         title: 'UI Modülleri'
       },
       {
         path: `${baseRoute}/admin`,
-        element: withProvider(LazyModullerPage, { scope: 'Admin' }),
+        element: withProvider(LazyModulYonetimiPage, { scope: 'Admin' }),
         title: 'Admin Modülleri'
+      },
+      {
+        path: `${baseRoute}/:subModuleId/:id`,
+        element: withProvider(LazyModulFeatureForm),
+        title: 'Modül Detayı'
       }
     ],
     menuItems: [
@@ -80,6 +87,8 @@ export function createModuleManagementModule(
       }
     ],
     components: {
+      ModulYonetimiPage: LazyModulYonetimiPage,
+      ModulFeatureForm: LazyModulFeatureForm,
       ModullerPage: LazyModullerPage,
       Moduller: LazyModullerPage
     }

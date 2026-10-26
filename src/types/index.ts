@@ -81,3 +81,18 @@ export interface ModuleManagementModuleOptions {
   adapter?: IModuleManagementAdapter;
   baseRoute?: string;
 }
+
+export interface ModuleConfigItem {
+  id: string;
+  title: string;
+  order: number;
+  isCore: boolean;
+  enabled: boolean;
+  package?: string;
+  exportName?: string;
+  path?: string;
+  iconName?: string;
+  description?: string;
+  version?: string;
+}
+
