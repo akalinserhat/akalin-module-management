@@ -515,7 +515,7 @@ export function ModulFeatureForm({
               childrenField="children"
               defaultExpandAll={true}
               treeColumnId="title"
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => (item ? `${item.category}_${item.id}` : '')}
               pageSize={100}
               emptyMessage={t('tanimli_varlik_yok', 'Bu modüle ait tescilli liste, kart veya belge bulunamadı.')}
             />

@@ -499,7 +499,7 @@ export function ModullerPage({ scope, hideHeader = false }: ModullerPageProps) {
       const entityTree = entities.tree && entities.tree.length > 0 ? entities.tree : entities.all;
 
       const mapEntityToNode = (ent: IModuleEntityDefinition): any => ({
-        id: `${modul.kod}_${ent.id}`,
+        id: `${modul.kod}_${ent.category}_${ent.id}`,
         ad: ent.title || ent.titleKey,
         kod: ent.id,
         kategori: ent.category,
